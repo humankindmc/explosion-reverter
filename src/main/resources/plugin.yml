@@ -1,0 +1,6 @@
+main: me.rileycalhoun.explosionreverter.ExplosionReverter
+name: ExplosionReverter
+description: Reverts explosion after a set amount of time.
+version: 1.0.0
+api-version: 1.21
+author: Riley Calhoun
