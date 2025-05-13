@@ -6,33 +6,33 @@ import dev.dejvokep.boostedyaml.settings.dumper.DumperSettings;
 import dev.dejvokep.boostedyaml.settings.general.GeneralSettings;
 import dev.dejvokep.boostedyaml.settings.loader.LoaderSettings;
 import dev.dejvokep.boostedyaml.settings.updater.UpdaterSettings;
-import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.block.Block;
-import org.bukkit.event.EventHandler;
-import org.bukkit.event.Listener;
-import org.bukkit.event.block.BlockExplodeEvent;
-import org.bukkit.event.entity.EntityExplodeEvent;
+import me.rileycalhoun.explosionreverter.command.ExplosionReverterCommand;
+import me.rileycalhoun.explosionreverter.explosions.ExplodedBlockManager;
+import me.rileycalhoun.explosionreverter.listeners.BlockExplosionListener;
+import me.rileycalhoun.explosionreverter.util.ConfigPath;
+import org.bukkit.command.PluginCommand;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.List;
 import java.util.Objects;
 
-public class ExplosionReverter extends JavaPlugin implements Listener {
 
-    private int revertAfter;
+public class ExplosionReverter extends JavaPlugin {
+
+    private YamlDocument configFile;
+    private ExplodedBlockManager explodedBlockManager;
+
+    private static long initialDelay, loopDelay;
 
     @Override
     public void onEnable() {
         long startTime = System.nanoTime();
         getLogger().info("Initializing config files...");
 
-        YamlDocument configFile;
         try {
-            configFile = YamlDocument.create(
-                    new File(getDataFolder(), ""),
+            this.configFile = YamlDocument.create(
+                    new File(getDataFolder(), "config.yml"),
                     Objects.requireNonNull(getClass().getResourceAsStream("/config/config.yml")),
                     GeneralSettings.DEFAULT,
                     UpdaterSettings.builder()
@@ -43,49 +43,75 @@ public class ExplosionReverter extends JavaPlugin implements Listener {
                             .build(),
                     DumperSettings.DEFAULT
             );
+
+            configFile.save();
+            configFile.update();
         } catch (IOException e) {
             getLogger().severe("Shutting down plugin. Could not load config: " + e.getMessage());
             getServer().getPluginManager().disablePlugin(this);
             return;
         }
 
-        revertAfter = configFile.getInt("revert-after");
+        initialDelay = configFile.getLong(ConfigPath.REVERSION_INITIAL_DELAY);
+        loopDelay = configFile.getLong(ConfigPath.REVERSION_LOOP_DELAY);
+
+        getLogger().info("Initializing managers...");
+        this.explodedBlockManager = new ExplodedBlockManager(this);
 
         getLogger().info("Registering listeners...");
-        getServer().getPluginManager().registerEvents(this, this);
+        getServer().getPluginManager().registerEvents(new BlockExplosionListener(explodedBlockManager), this);
+
+        getLogger().info("Registering commands...");
+        PluginCommand command = getCommand("explosionreverter");
+        assert command != null;
+        command.setExecutor(new ExplosionReverterCommand(this));
+
 
         long duration = (System.nanoTime() - startTime) / 1_000_000;
         getLogger().info("Done! Enabled in " + duration + "ms.");
     }
 
-    @EventHandler
-    public void onEntityExplosion(EntityExplodeEvent event) {
-        scheduleRebuild(event.blockList());
-    }
-
-    @EventHandler
-    public void onBlockExplosion(BlockExplodeEvent event) {
-        scheduleRebuild(event.blockList());
-    }
-
-    private void scheduleRebuild(List<Block> blockList) {
-        getServer()
-                .getScheduler()
-                .runTaskLaterAsynchronously(
-                        this,
-                        () -> rebuildExplosion(blockList)
-                        , 20L * revertAfter
-                );
-    }
-
-    private void rebuildExplosion(List<Block> blockList) {
-        for (Block oldBlock : blockList) {
-            Location location = oldBlock.getLocation();
-            Block currentBlock = location.getBlock();
-            if (currentBlock.getType() == Material.AIR) {
-                currentBlock.setType(oldBlock.getType());
-            }
+    @Override
+    public void onDisable() {
+        getLogger().info("Saving config.yml...");
+        try {
+            configFile.save();
+        } catch (IOException e) {
+            getLogger().severe("Could not save config.yml: " + e.getMessage());
         }
+
+        getLogger().info("Replacing all exploded blocks...");
+        getExplodedBlockManager().cancelTask();
+        getExplodedBlockManager().eachReplaceAll();
+
+        getLogger().info("ExplosionReverter has been disabled!");
+    }
+
+    public ExplodedBlockManager getExplodedBlockManager() {
+        return explodedBlockManager;
+    }
+
+    public static long getInitialDelay() {
+        return initialDelay;
+    }
+
+    public static long getLoopDelay() {
+        return loopDelay;
+    }
+
+    @Override
+    public void reloadConfig() {
+        try {
+            configFile.reload();
+        } catch (IOException e) {
+            getLogger().severe("Issue while reloading config: " + e.getMessage());
+            return;
+        }
+
+        initialDelay = configFile.getLong(ConfigPath.REVERSION_INITIAL_DELAY);
+        loopDelay = configFile.getLong(ConfigPath.REVERSION_LOOP_DELAY);
+
+        getExplodedBlockManager().rescheduleTask();
     }
 
 }

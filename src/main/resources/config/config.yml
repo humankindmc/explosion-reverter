@@ -1,4 +1,8 @@
-version: 1
+version: 2
 
-# How many seconds to wait before reverting the explosion.
-revert-after: 30
+# NOTE: partial seconds do not work; whole seconds only.
+reversion:
+  # How many seconds to wait before initially starting reverting
+  initial-delay: 30
+  # How many seconds in between blocks
+  loop-delay: 1
