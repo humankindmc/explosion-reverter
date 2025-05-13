@@ -1,6 +1,8 @@
 package me.rileycalhoun.explosionreverter.explosions;
 
 import me.rileycalhoun.explosionreverter.ExplosionReverter;
+import me.rileycalhoun.explosionreverter.events.ExplodedBlockHealedEvent;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
 import org.bukkit.block.data.BlockData;
@@ -25,6 +27,10 @@ public class Explosion {
         if (durationSeconds >= ExplosionReverter.getInitialDelay() || force) {
             if (processList.isEmpty()) return;
             ReplaceableBlock replaceable = processList.remove();
+            ExplodedBlockHealedEvent event = new ExplodedBlockHealedEvent(replaceable);
+            Bukkit.getServer().getPluginManager().callEvent(event);
+            if (event.isCancelled()) return;
+
             BlockData blockData = replaceable.getRealBlockData();
 
             Location location = replaceable.getLocation();
