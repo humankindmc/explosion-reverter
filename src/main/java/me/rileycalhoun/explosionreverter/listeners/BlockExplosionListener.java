@@ -1,6 +1,6 @@
 package me.rileycalhoun.explosionreverter.listeners;
 
-import me.rileycalhoun.explosionreverter.explosions.ExplodedBlockManager;
+import me.rileycalhoun.explosionreverter.explosions.ExplosionManager;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -9,20 +9,20 @@ import org.bukkit.event.entity.EntityExplodeEvent;
 
 public class BlockExplosionListener implements Listener {
 
-    private final ExplodedBlockManager explodedBlockManager;
+    private final ExplosionManager explosionManager;
 
-    public BlockExplosionListener(ExplodedBlockManager explodedBlockManager) {
-        this.explodedBlockManager = explodedBlockManager;
+    public BlockExplosionListener(ExplosionManager explosionManager) {
+        this.explosionManager = explosionManager;
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onEntityExplode(EntityExplodeEvent event) {
-        explodedBlockManager.processExplosion(event);
+        explosionManager.processExplosion(event);
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onBlockExplode(BlockExplodeEvent event) {
-        explodedBlockManager.processExplosion(event);
+        explosionManager.processExplosion(event);
     }
 
 }
