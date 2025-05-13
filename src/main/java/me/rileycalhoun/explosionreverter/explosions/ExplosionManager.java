@@ -11,13 +11,13 @@ import org.bukkit.scheduler.BukkitTask;
 
 import java.util.*;
 
-public class ExplodedBlockManager {
+public class ExplosionManager {
 
     private final ExplosionReverter plugin;
     private final List<Explosion> explosions;
     private BukkitTask task;
 
-    public ExplodedBlockManager(ExplosionReverter plugin) {
+    public ExplosionManager(ExplosionReverter plugin) {
         this.plugin = plugin;
         this.explosions = new ArrayList<>();
         scheduleTask();

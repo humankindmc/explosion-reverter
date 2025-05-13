@@ -7,7 +7,7 @@ import dev.dejvokep.boostedyaml.settings.general.GeneralSettings;
 import dev.dejvokep.boostedyaml.settings.loader.LoaderSettings;
 import dev.dejvokep.boostedyaml.settings.updater.UpdaterSettings;
 import me.rileycalhoun.explosionreverter.command.ExplosionReverterCommand;
-import me.rileycalhoun.explosionreverter.explosions.ExplodedBlockManager;
+import me.rileycalhoun.explosionreverter.explosions.ExplosionManager;
 import me.rileycalhoun.explosionreverter.listeners.BlockExplosionListener;
 import me.rileycalhoun.explosionreverter.util.ConfigPath;
 import org.bukkit.command.PluginCommand;
@@ -21,7 +21,7 @@ import java.util.Objects;
 public class ExplosionReverter extends JavaPlugin {
 
     private YamlDocument configFile;
-    private ExplodedBlockManager explodedBlockManager;
+    private ExplosionManager explosionManager;
 
     private static long initialDelay, loopDelay;
 
@@ -56,10 +56,10 @@ public class ExplosionReverter extends JavaPlugin {
         loopDelay = configFile.getLong(ConfigPath.REVERSION_LOOP_DELAY);
 
         getLogger().info("Initializing managers...");
-        this.explodedBlockManager = new ExplodedBlockManager(this);
+        this.explosionManager = new ExplosionManager(this);
 
         getLogger().info("Registering listeners...");
-        getServer().getPluginManager().registerEvents(new BlockExplosionListener(explodedBlockManager), this);
+        getServer().getPluginManager().registerEvents(new BlockExplosionListener(explosionManager), this);
 
         getLogger().info("Registering commands...");
         PluginCommand command = getCommand("explosionreverter");
@@ -87,8 +87,8 @@ public class ExplosionReverter extends JavaPlugin {
         getLogger().info("ExplosionReverter has been disabled!");
     }
 
-    public ExplodedBlockManager getExplodedBlockManager() {
-        return explodedBlockManager;
+    public ExplosionManager getExplodedBlockManager() {
+        return explosionManager;
     }
 
     public static long getInitialDelay() {
