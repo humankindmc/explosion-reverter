@@ -7,7 +7,6 @@ import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.event.block.BlockExplodeEvent;
 import org.bukkit.event.entity.EntityExplodeEvent;
-import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitTask;
 
 import java.util.*;
@@ -15,7 +14,7 @@ import java.util.*;
 public class ExplodedBlockManager {
 
     private final ExplosionReverter plugin;
-    private List<Explosion> explosions;
+    private final List<Explosion> explosions;
     private BukkitTask task;
 
     public ExplodedBlockManager(ExplosionReverter plugin) {

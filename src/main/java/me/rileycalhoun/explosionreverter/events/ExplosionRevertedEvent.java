@@ -14,10 +14,10 @@ public class ExplosionRevertedEvent extends Event implements Cancellable {
     private static final HandlerList HANDLER_LIST = new HandlerList();
 
     @NotNull
-    private LinkedList<ReplaceableBlock> processList;
+    private final LinkedList<ReplaceableBlock> processList;
 
     @NotNull
-    private ExplosionCause cause;
+    private final ExplosionCause cause;
 
     private boolean cancelled;
 
